@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-final player=AudioPlayer()..setReleaseMode(ReleaseMode.loop);
+// 全域變數：音樂播放器
+final player = AudioPlayer()..setReleaseMode(ReleaseMode.loop);
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '黃冠竣的自傳',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -31,113 +32,171 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-  final tabs=[
+  // 這裡放入四個頁面
+  final tabs = [
     Screen1(),
     Screen2(),
     Screen3(),
     Screen4(),
   ];
 
-  int previousIndex=0;
-  int currentIndex=0;
+  int previousIndex = 0;
+  int currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    if (currentIndex==0) player.play(AssetSource("1.mp3"));
+    // 初始化播放第一首 (如果需要剛進去就播的話)
+    if (currentIndex == 0) player.play(AssetSource("1.mp3"));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("我的自傳"),
+        title: Text("我的自傳 App"),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: tabs[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-                             type: BottomNavigationBarType.fixed,
-                             backgroundColor: Colors.blue,
-                             selectedItemColor: Colors.white,
-                             selectedFontSize: 18,
-                             unselectedFontSize: 14,
-                             iconSize: 30,
-                             currentIndex: currentIndex,
-                             items: [
-                               BottomNavigationBarItem(icon: currentIndex==0? Image.asset('assets/a1.png', width: 40, height: 40,):Image.asset('assets/a11.png', width: 30, height: 30,), label:"自我介紹",),
-                               BottomNavigationBarItem(icon: currentIndex==1? Image.asset('assets/a2.png', width: 40, height: 40,):Image.asset('assets/a21.png', width: 30, height: 30,), label:"學習歷程",),
-                               BottomNavigationBarItem(icon: currentIndex==2? Image.asset('assets/a3.jpg', width: 40, height: 40,):Image.asset('assets/a31.jpg', width: 30, height: 30,), label:"學習計畫",),
-                               BottomNavigationBarItem(icon: currentIndex==3? Image.asset('assets/a4.png', width: 40, height: 40,):Image.asset('assets/a41.png', width: 30, height: 30,), label:"專業方向",),
-                             ],
-                             onTap: (index) {
-                               setState(() {
-                                 previousIndex=currentIndex;
-                                 currentIndex=index;
-                                 if (index==0) {
-                                    if (previousIndex==currentIndex) player.resume();
-                                    player.stop();
-                                    player.play(AssetSource("1.mp3"));
-                                 }
-                                 if (index==1) {
-                                   if (previousIndex==currentIndex) player.resume();
-                                   player.stop();
-                                   player.play(AssetSource("2.mp3"));
-                                 }
-                                 if (index==2) {
-                                   if (previousIndex==currentIndex) player.resume();
-                                   player.stop();
-                                   player.play(AssetSource("3.mp3"));
-                                 }
-                                 if (index==3) {
-                                   if (previousIndex==currentIndex) player.resume();
-                                   player.stop();
-                                   player.play(AssetSource("4.mp3"));
-                                 }
-                               });
-                             },
-                           ),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.blue,
+        selectedItemColor: Colors.white,
+        selectedFontSize: 18,
+        unselectedFontSize: 14,
+        iconSize: 30,
+        currentIndex: currentIndex,
+        items: [
+          BottomNavigationBarItem(
+            icon: currentIndex == 0
+                ? Image.asset('assets/a1.png', width: 40, height: 40)
+                : Image.asset('assets/a11.png', width: 30, height: 30),
+            label: "自我介紹",
+          ),
+          BottomNavigationBarItem(
+            icon: currentIndex == 1
+                ? Image.asset('assets/a2.png', width: 40, height: 40)
+                : Image.asset('assets/a21.png', width: 30, height: 30),
+            label: "學習歷程",
+          ),
+          BottomNavigationBarItem(
+            icon: currentIndex == 2
+                ? Image.asset('assets/a3.jpg', width: 40, height: 40)
+                : Image.asset('assets/a31.jpg', width: 30, height: 30),
+            label: "學習計畫",
+          ),
+          BottomNavigationBarItem(
+            icon: currentIndex == 3
+                ? Image.asset('assets/a4.png', width: 40, height: 40)
+                : Image.asset('assets/a41.png', width: 30, height: 30),
+            label: "專業方向",
+          ),
+        ],
+        onTap: (index) {
+          setState(() {
+            previousIndex = currentIndex;
+            currentIndex = index;
+            // 切換頁面時換音樂
+            if (index == 0) {
+              if (previousIndex == currentIndex) player.resume();
+              player.stop();
+              player.play(AssetSource("1.mp3"));
+            }
+            if (index == 1) {
+              if (previousIndex == currentIndex) player.resume();
+              player.stop();
+              player.play(AssetSource("2.mp3"));
+            }
+            if (index == 2) {
+              if (previousIndex == currentIndex) player.resume();
+              player.stop();
+              player.play(AssetSource("3.mp3"));
+            }
+            if (index == 3) {
+              if (previousIndex == currentIndex) player.resume();
+              player.stop();
+              player.play(AssetSource("4.mp3"));
+            }
+          });
+        },
+      ),
     );
   }
 }
 
+// ================== 第一頁：自我介紹 ==================
 class Screen1 extends StatelessWidget {
   Screen1({super.key});
 
-  String s1="我出生在一個很平凡但很美滿的小家庭，父親是個公務員，在台電服務，母親是個家庭主婦，而弟弟和我都還在學校求學。父母用民主的方式管教我們，希望我們能夠獨立自主、主動學習，累積人生經驗，但他們會適時的給予鼓勵和建議，父母親只對我們要求兩件事，第一是保持健康，第二是著重課業。因為沒有健康的身體，就算有再多的才華、再大的抱負也無法發揮出來。又因為家境並不富裕，所以必須專心於課業上，學得一技之長，將來才能自立更生。"
-  "在小學時代的我很活潑、很好動，在課業上表現平平，但課外表現不錯，除了擔任過班長等幹部外，還參加樂隊、糾察隊等，另外還曾獲選為校隊參加跳高比賽。"
-  "小學畢業後，進入了一所私立中學，因為校規嚴格，使原本好動的我變得較為文靜，不過在那裡我學會了許多應有的禮節與待人處世的道理。在國中時期的我，好像開了竅，代表全校接受縣政府的表揚，在國三畢業典禮上，更代表了全體畢業生上台領取畢業證書。"
-  "進附中後，每天都覺得很充實、很快樂。附中學生的特色是能K、能玩，所以我不斷地努力學習，希望能夠達到此目標。在課業方面，我都能保持在一定的水準，因為上課專心聽講、仔細思考、體會老師所說的每一句話，在腦海裡架構重要觀念，一有問題就立刻發問，因此上課的吸收效率很高，不但使得複習的工作能夠很快完成，還有多餘的時間從事課外活動。在這麼多的科目當中，我最喜歡的是數學、化學和生物，因為數學、化學能夠訓練我們組織與思考能力。而生物則和日常生活有密切的關係，且它為我們揭開人體的奧秘。";
+  final String s1 = "我是黃冠竣，來自彰化，今年21歲，是個外冷內熱的天蠍座。生長在一家四口的家庭，父親在警界服務，或許是受到父親嚴謹工作的耳濡目染，雖然小時候曾經歷過一段叛逆不懂事的時期，總覺得大人的碎念很煩，直到長大離家求學後，才逐漸體會到家人的苦心，也開始後悔當初沒有多聽聽他們的建議。\n\n"
+      "除了家庭，音樂是我生活中不可或缺的調味劑，我熱愛彈吉他，在指尖觸碰琴弦的震動中，我能找到平靜，也能宣洩情緒。現在的我，正努力補足過去的不足，希望成為一個讓家人驕傲的大人。";
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          //標題
           Padding(
             padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
-            child: Text("Who am I", style: TextStyle(fontSize: 32,
-                                                     fontWeight: FontWeight.bold),
-                   ),
+            child: Text(
+              "Who am I",
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
           ),
-          //自傳部分
           Container(
             padding: EdgeInsets.all(20),
             margin: EdgeInsets.fromLTRB(30, 0, 30, 30),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 3,),
+              border: Border.all(color: Colors.black, width: 3),
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
-                BoxShadow(color: Colors.amberAccent, offset: Offset(6,6)),
+                BoxShadow(color: Colors.amberAccent, offset: Offset(6, 6)),
               ],
             ),
-            child: Text(s1, style: TextStyle(fontSize: 20,)),
+            child: Text(s1, style: TextStyle(fontSize: 20)),
           ),
-          SizedBox(height: 15),
+          // 放照片的地方
           Container(
             color: Colors.redAccent,
             child: Image.asset('assets/a1.png'),
             width: 200,
             height: 200,
           ),
-          SizedBox(height: 25),
+          SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+// ================== 第二頁：學習歷程 ==================
+class Screen2 extends StatelessWidget {
+  Screen2({super.key});
+
+  final String s2 = "高中畢業於彰師大附工，那是奠定我基礎技能的重要階段。目前就讀於國立高雄科技大學，這是一個充滿機會與挑戰的環境。\n\n"
+      "在學業之外，我投入了大量的熱情在「吉他社」，並擔任了「燈控長」的幹部職位。這個職位不只是負責打燈，更考驗著對舞台氛圍的掌握以及團隊合作的默契。在無數次的活動與成發中，我學會了如何在幕後默默付出，成就台上的光彩，這段經歷讓我明白，每一個細節的精準控制，都是完美演出的關鍵，也培養了我解決突發狀況的能力。";
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
+            child: Text(
+              "My History",
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.all(20),
+            margin: EdgeInsets.fromLTRB(30, 0, 30, 30),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 3),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(color: Colors.lightBlueAccent, offset: Offset(6, 6)),
+              ],
+            ),
+            child: Text(s2, style: TextStyle(fontSize: 20)),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -145,19 +204,22 @@ class Screen1 extends StatelessWidget {
                 width: 150,
                 height: 150,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.purple, width: 2, style: BorderStyle.solid),
+                  border: Border.all(
+                      color: Colors.purple, width: 2, style: BorderStyle.solid),
                   borderRadius: BorderRadius.circular(30),
-                  image: DecorationImage(image: AssetImage('assets/a2.png'), fit: BoxFit.cover),
+                  image: DecorationImage(
+                      image: AssetImage('assets/a2.png'), fit: BoxFit.cover),
                 ),
               ),
-              //SizedBox(width: 10,),
               Container(
                 width: 150,
                 height: 150,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.purple, width: 2, style: BorderStyle.solid),
+                  border: Border.all(
+                      color: Colors.purple, width: 2, style: BorderStyle.solid),
                   borderRadius: BorderRadius.circular(30),
-                  image: DecorationImage(image: AssetImage('assets/a3.jpg'), fit: BoxFit.cover),
+                  image: DecorationImage(
+                      image: AssetImage('assets/a3.jpg'), fit: BoxFit.cover),
                 ),
               ),
             ],
@@ -168,14 +230,7 @@ class Screen1 extends StatelessWidget {
   }
 }
 
-class Screen2 extends StatelessWidget {
-  const Screen2({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('Screen2');
-  }
-}
+// ================== 第三頁：學習計畫 ==================
 class Screen3 extends StatelessWidget {
   const Screen3({super.key});
 
@@ -184,47 +239,97 @@ class Screen3 extends StatelessWidget {
     return Container(
       child: Column(
         children: [
+          SizedBox(height: 30),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("大一時期", style: TextStyle(fontSize: 24,)),
+              Text("大三時期目標", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
             ],
           ),
-          SizedBox(height: 10,),
+          SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center, // 置中
             children: [
               Container(
-                height: 200,
-                width: 140,
-                //width: 200,
+                height: 300,
+                width: 250, // 加寬一點讓字能顯示完整
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: ListView(
                   children: [
-                    Text("1. 學好英文", style: TextStyle(fontSize: 20,)),
-                    Text("2. 組合語言", style: TextStyle(fontSize: 20,)),
-                    Text("3. 考取證照", style: TextStyle(fontSize: 20,)),
-                    Text("4. 人際關係", style: TextStyle(fontSize: 20,)),
+                    ListTile(
+                      leading: Icon(Icons.check_circle_outline, color: Colors.green),
+                      title: Text("補足學科漏洞", style: TextStyle(fontSize: 20)),
+                      subtitle: Text("複習基礎，打好地基"),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.flag, color: Colors.red),
+                      title: Text("確立職涯目標", style: TextStyle(fontSize: 20)),
+                      subtitle: Text("尋找適合自己的出路"),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.trending_up, color: Colors.blue),
+                      title: Text("提升學業成績", style: TextStyle(fontSize: 20)),
+                      subtitle: Text("對自己負責，爭取佳績"),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.music_note, color: Colors.orange),
+                      title: Text("享受學生青春", style: TextStyle(fontSize: 20)),
+                      subtitle: Text("把握最後的校園時光"),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 10,),
-          Row(),
-          SizedBox(height: 10,),
-          Row(),
-          SizedBox(height: 10,),
-          Row(),
         ],
       ),
     );
   }
 }
+
+// ================== 第四頁：專業方向 ==================
 class Screen4 extends StatelessWidget {
-  const Screen4({super.key});
+  Screen4({super.key});
+
+  final String s4 = "身為資訊領域的學生，我期望未來能成為一名全端工程師或是行動裝置 App 開發者。\n\n"
+      "我喜歡將邏輯思維轉化為實際可操作的應用程式，就像在吉他社控制燈光一樣，透過程式碼來搭建使用者的舞台。目前的目標是精進 Flutter 與前後端串接技術，期許自己不僅能寫出高效率的程式碼，更能開發出具備美感與使用者體驗的產品，將科技與人文溫度結合。";
 
   @override
   Widget build(BuildContext context) {
-    return Text('Screen4');
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
+            child: Text(
+              "Future & Career",
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.all(20),
+            margin: EdgeInsets.fromLTRB(30, 0, 30, 30),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 3),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(color: Colors.purpleAccent, offset: Offset(6, 6)),
+              ],
+            ),
+            child: Text(s4, style: TextStyle(fontSize: 20)),
+          ),
+          SizedBox(height: 15),
+          Container(
+            width: 200,
+            height: 200,
+            child: Image.asset('assets/a4.png'), // 假設這裡有一張代表專業的圖片
+          ),
+        ],
+      ),
+    );
   }
 }
