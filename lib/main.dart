@@ -162,7 +162,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 2. 專屬運動建議 (取代原本的步數)
+                  // 2. 專屬運動建議
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -173,7 +173,14 @@ class _DashboardTabState extends State<DashboardTab> {
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                      boxShadow: [
+                        BoxShadow(
+                          // 【修正 1】使用 withValues 替代 withOpacity
+                          color: Colors.blue.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +343,8 @@ class HealthRecordTab extends StatelessWidget {
       elevation: 2,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.1),
+          // 【修正 1】使用 withValues 替代 withOpacity
+          backgroundColor: iconColor.withValues(alpha: 0.1),
           child: Icon(icon, color: iconColor),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -379,8 +387,10 @@ class HealthRecordTab extends StatelessWidget {
               // 更新數據
               profile.height = double.tryParse(heightController.text) ?? profile.height;
               profile.weight = double.tryParse(weightController.text) ?? profile.weight;
-              // 通知監聽者(首頁)更新
-              userProfile.notifyListeners();
+
+              // 【修正 2】ValueNotifier 正確的更新方式 (重新賦值觸發監聽)
+              userProfile.value = userProfile.value;
+
               Navigator.pop(context);
             },
             child: const Text('儲存'),
@@ -421,7 +431,10 @@ class HealthRecordTab extends StatelessWidget {
             onPressed: () {
               profile.sysBP = int.tryParse(sysController.text) ?? profile.sysBP;
               profile.diaBP = int.tryParse(diaController.text) ?? profile.diaBP;
-              userProfile.notifyListeners();
+
+              // 【修正 2】ValueNotifier 正確的更新方式
+              userProfile.value = userProfile.value;
+
               Navigator.pop(context);
             },
             child: const Text('儲存'),
@@ -469,8 +482,8 @@ class _DietPageState extends State<DietPage> {
                     if (_foodController.text.isNotEmpty) {
                       setState(() {
                         userProfile.value.dietLog.add(_foodController.text);
-                        // 觸發全局更新 (雖然此處是 local state，但為了資料一致性)
-                        userProfile.notifyListeners();
+                        // 【修正 2】確保全域更新
+                        userProfile.value = userProfile.value;
                         _foodController.clear();
                       });
                     }
