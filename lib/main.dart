@@ -1,230 +1,509 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
-
-final player=AudioPlayer()..setReleaseMode(ReleaseMode.loop);
 
 void main() {
-  runApp(const MyApp());
+  runApp(const HealthApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// 簡單的全域資料狀態管理 (為了讓首頁能即時反應記錄頁的修改)
+// 使用 ValueNotifier 監聽數據變化
+final ValueNotifier<UserProfile> userProfile = ValueNotifier<UserProfile>(
+  UserProfile(height: 170.0, weight: 65.0, sysBP: 120, diaBP: 80, dietLog: []),
+);
+
+class UserProfile {
+  double height; // cm
+  double weight; // kg
+  int sysBP;     // 收縮壓
+  int diaBP;     // 舒張壓
+  List<String> dietLog; // 飲食紀錄
+
+  UserProfile({
+    required this.height,
+    required this.weight,
+    required this.sysBP,
+    required this.diaBP,
+    required this.dietLog
+  });
+
+  // 計算 BMI
+  double get bmi => weight / ((height / 100) * (height / 100));
+
+  // 根據 BMI 給出運動建議
+  String get exerciseRecommendation {
+    double b = bmi;
+    if (b < 18.5) {
+      return "🏋️ 建議運動：肌力訓練\n目標：增加肌肉量\n推薦：啞鈴、伏地挺身、深蹲，並多攝取蛋白質。";
+    } else if (b >= 24) {
+      return "🏊 建議運動：有氧燃脂\n目標：減脂與心肺功能\n推薦：快走、游泳、飛輪，減少膝蓋負擔為佳。";
+    } else {
+      return "🏃 建議運動：綜合訓練\n目標：維持體態\n推薦：慢跑、瑜珈、HIIT 間歇運動。";
+    }
+  }
+}
+
+class HealthApp extends StatelessWidget {
+  const HealthApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
+      title: '個人健康管理',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.teal,
+        useMaterial3: true,
+        scaffoldBackgroundColor: Colors.grey.shade50,
       ),
-      home: const MyHomePage(),
+      home: const MainScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+// ================== 主畫面架構 ==================
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
 
-  final tabs=[
-    Screen1(),
-    Screen2(),
-    Screen3(),
-    Screen4(),
+  // 現在只保留兩個分頁
+  final List<Widget> _pages = [
+    const DashboardTab(),    // 1. 總覽 (看數據、看建議)
+    const HealthRecordTab(), // 2. 記錄 (改數據)
   ];
 
-  int previousIndex=0;
-  int currentIndex=0;
-
   @override
   Widget build(BuildContext context) {
-    if (currentIndex==0) player.play(AssetSource("1.mp3"));
     return Scaffold(
-      appBar: AppBar(
-        title: Text("我的自傳"),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      body: _pages[_currentIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: '健康總覽',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.edit_note_outlined),
+            selectedIcon: Icon(Icons.edit_note),
+            label: '數據記錄',
+          ),
+        ],
       ),
-      body: tabs[currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-                             type: BottomNavigationBarType.fixed,
-                             backgroundColor: Colors.blue,
-                             selectedItemColor: Colors.white,
-                             selectedFontSize: 18,
-                             unselectedFontSize: 14,
-                             iconSize: 30,
-                             currentIndex: currentIndex,
-                             items: [
-                               BottomNavigationBarItem(icon: currentIndex==0? Image.asset('assets/a1.png', width: 40, height: 40,):Image.asset('assets/a11.png', width: 30, height: 30,), label:"自我介紹",),
-                               BottomNavigationBarItem(icon: currentIndex==1? Image.asset('assets/a2.png', width: 40, height: 40,):Image.asset('assets/a21.png', width: 30, height: 30,), label:"學習歷程",),
-                               BottomNavigationBarItem(icon: currentIndex==2? Image.asset('assets/a3.jpg', width: 40, height: 40,):Image.asset('assets/a31.jpg', width: 30, height: 30,), label:"學習計畫",),
-                               BottomNavigationBarItem(icon: currentIndex==3? Image.asset('assets/a4.png', width: 40, height: 40,):Image.asset('assets/a41.png', width: 30, height: 30,), label:"專業方向",),
-                             ],
-                             onTap: (index) {
-                               setState(() {
-                                 previousIndex=currentIndex;
-                                 currentIndex=index;
-                                 if (index==0) {
-                                    if (previousIndex==currentIndex) player.resume();
-                                    player.stop();
-                                    player.play(AssetSource("1.mp3"));
-                                 }
-                                 if (index==1) {
-                                   if (previousIndex==currentIndex) player.resume();
-                                   player.stop();
-                                   player.play(AssetSource("2.mp3"));
-                                 }
-                                 if (index==2) {
-                                   if (previousIndex==currentIndex) player.resume();
-                                   player.stop();
-                                   player.play(AssetSource("3.mp3"));
-                                 }
-                                 if (index==3) {
-                                   if (previousIndex==currentIndex) player.resume();
-                                   player.stop();
-                                   player.play(AssetSource("4.mp3"));
-                                 }
-                               });
-                             },
-                           ),
     );
   }
 }
 
-class Screen1 extends StatelessWidget {
-  Screen1({super.key});
+// ================== 分頁 1: 健康總覽 (Dashboard) ==================
+class DashboardTab extends StatefulWidget {
+  const DashboardTab({super.key});
 
-  String s1="我出生在一個很平凡但很美滿的小家庭，父親是個公務員，在台電服務，母親是個家庭主婦，而弟弟和我都還在學校求學。父母用民主的方式管教我們，希望我們能夠獨立自主、主動學習，累積人生經驗，但他們會適時的給予鼓勵和建議，父母親只對我們要求兩件事，第一是保持健康，第二是著重課業。因為沒有健康的身體，就算有再多的才華、再大的抱負也無法發揮出來。又因為家境並不富裕，所以必須專心於課業上，學得一技之長，將來才能自立更生。"
-  "在小學時代的我很活潑、很好動，在課業上表現平平，但課外表現不錯，除了擔任過班長等幹部外，還參加樂隊、糾察隊等，另外還曾獲選為校隊參加跳高比賽。"
-  "小學畢業後，進入了一所私立中學，因為校規嚴格，使原本好動的我變得較為文靜，不過在那裡我學會了許多應有的禮節與待人處世的道理。在國中時期的我，好像開了竅，代表全校接受縣政府的表揚，在國三畢業典禮上，更代表了全體畢業生上台領取畢業證書。"
-  "進附中後，每天都覺得很充實、很快樂。附中學生的特色是能K、能玩，所以我不斷地努力學習，希望能夠達到此目標。在課業方面，我都能保持在一定的水準，因為上課專心聽講、仔細思考、體會老師所說的每一句話，在腦海裡架構重要觀念，一有問題就立刻發問，因此上課的吸收效率很高，不但使得複習的工作能夠很快完成，還有多餘的時間從事課外活動。在這麼多的科目當中，我最喜歡的是數學、化學和生物，因為數學、化學能夠訓練我們組織與思考能力。而生物則和日常生活有密切的關係，且它為我們揭開人體的奧秘。";
+  @override
+  State<DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<DashboardTab> {
+  int _waterCount = 0;
+  final int _waterGoal = 8;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    // 使用 ValueListenableBuilder 來監聽 userProfile 的變化
+    // 這樣當我們在「記錄」頁面修改體重時，這裡的 BMI 和建議會自動更新
+    return ValueListenableBuilder<UserProfile>(
+        valueListenable: userProfile,
+        builder: (context, profile, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('今日健康概況'),
+              backgroundColor: Colors.teal.shade50,
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('早安，使用者', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+
+                  // 1. 動態 BMI 卡片
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoCard(
+                          title: '目前 BMI',
+                          value: profile.bmi.toStringAsFixed(1),
+                          unit: '',
+                          icon: Icons.monitor_weight,
+                          color: _getBmiColor(profile.bmi),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildInfoCard(
+                          title: '最新血壓',
+                          value: '${profile.sysBP}/${profile.diaBP}',
+                          unit: 'mmHg',
+                          icon: Icons.favorite,
+                          color: Colors.red.shade100,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 2. 專屬運動建議 (取代原本的步數)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade400, Colors.teal.shade300],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.fitness_center, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text('專屬運動處方', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          profile.exerciseRecommendation,
+                          style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 3. 喝水記錄 (保留互動功能)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('💧 喝水記錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text('$_waterCount / $_waterGoal 杯', style: const TextStyle(fontSize: 16, color: Colors.teal)),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        LinearProgressIndicator(
+                          value: _waterCount / _waterGoal,
+                          backgroundColor: Colors.grey.shade200,
+                          color: Colors.blue,
+                          minHeight: 10,
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () => setState(() { if (_waterCount < _waterGoal) _waterCount++; }),
+                              icon: const Icon(Icons.add),
+                              label: const Text('喝一杯'),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton(
+                              onPressed: () => setState(() => _waterCount = 0),
+                              child: const Text('重置'),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+    );
+  }
+
+  Color _getBmiColor(double bmi) {
+    if (bmi < 18.5) return Colors.orange.shade100; // 過輕
+    if (bmi >= 24) return Colors.red.shade100;    // 過重
+    return Colors.green.shade100;                 // 正常
+  }
+
+  Widget _buildInfoCard({required String title, required String value, required String unit, required IconData icon, required Color color}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //標題
-          Padding(
-            padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
-            child: Text("Who am I", style: TextStyle(fontSize: 32,
-                                                     fontWeight: FontWeight.bold),
-                   ),
+          Icon(icon, size: 28, color: Colors.black54),
+          const SizedBox(height: 8),
+          Text(title, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 4),
+              Text(unit, style: const TextStyle(fontSize: 12)),
+            ],
           ),
-          //自傳部分
-          Container(
-            padding: EdgeInsets.all(20),
-            margin: EdgeInsets.fromLTRB(30, 0, 30, 30),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 3,),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(color: Colors.amberAccent, offset: Offset(6,6)),
+        ],
+      ),
+    );
+  }
+}
+
+// ================== 分頁 2: 數據記錄 (Records) ==================
+class HealthRecordTab extends StatelessWidget {
+  const HealthRecordTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('健康數據手帳')),
+      body: ValueListenableBuilder<UserProfile>(
+          valueListenable: userProfile,
+          builder: (context, profile, child) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // 1. 身體數據編輯
+                _buildRecordItem(
+                    context,
+                    '身體數據 (BMI)',
+                    '${profile.height} cm / ${profile.weight} kg',
+                    Icons.accessibility,
+                    Colors.orange,
+                        () => _showBodyEditDialog(context, profile)
+                ),
+                // 2. 血壓記錄編輯
+                _buildRecordItem(
+                    context,
+                    '血壓記錄',
+                    '收縮壓 ${profile.sysBP} / 舒張壓 ${profile.diaBP}',
+                    Icons.favorite,
+                    Colors.red,
+                        () => _showBPEditDialog(context, profile)
+                ),
+                // 3. 飲食日記
+                _buildRecordItem(
+                    context,
+                    '飲食日記',
+                    '已記錄 ${profile.dietLog.length} 筆',
+                    Icons.restaurant,
+                    Colors.green,
+                        () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DietPage()))
+                ),
+              ],
+            );
+          }
+      ),
+    );
+  }
+
+  Widget _buildRecordItem(BuildContext context, String title, String subtitle, IconData icon, Color iconColor, VoidCallback onTap) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: iconColor.withOpacity(0.1),
+          child: Icon(icon, color: iconColor),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.grey)),
+        trailing: const Icon(Icons.edit, size: 20, color: Colors.grey),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  // 修改身高體重的對話框
+  void _showBodyEditDialog(BuildContext context, UserProfile profile) {
+    final heightController = TextEditingController(text: profile.height.toString());
+    final weightController = TextEditingController(text: profile.weight.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('更新身體數據'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: heightController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '身高 (cm)', suffixText: 'cm'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: weightController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '體重 (kg)', suffixText: 'kg'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          ElevatedButton(
+            onPressed: () {
+              // 更新數據
+              profile.height = double.tryParse(heightController.text) ?? profile.height;
+              profile.weight = double.tryParse(weightController.text) ?? profile.weight;
+              // 通知監聽者(首頁)更新
+              userProfile.notifyListeners();
+              Navigator.pop(context);
+            },
+            child: const Text('儲存'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 修改血壓的對話框
+  void _showBPEditDialog(BuildContext context, UserProfile profile) {
+    final sysController = TextEditingController(text: profile.sysBP.toString());
+    final diaController = TextEditingController(text: profile.diaBP.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('記錄血壓'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: sysController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '收縮壓 (高壓)', suffixText: 'mmHg'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: diaController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '舒張壓 (低壓)', suffixText: 'mmHg'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          ElevatedButton(
+            onPressed: () {
+              profile.sysBP = int.tryParse(sysController.text) ?? profile.sysBP;
+              profile.diaBP = int.tryParse(diaController.text) ?? profile.diaBP;
+              userProfile.notifyListeners();
+              Navigator.pop(context);
+            },
+            child: const Text('儲存'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ================== 飲食日記頁面 (獨立頁面) ==================
+class DietPage extends StatefulWidget {
+  const DietPage({super.key});
+
+  @override
+  State<DietPage> createState() => _DietPageState();
+}
+
+class _DietPageState extends State<DietPage> {
+  final TextEditingController _foodController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('飲食日記')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _foodController,
+                    decoration: const InputDecoration(
+                      labelText: '吃了什麼？',
+                      hintText: '例如：雞胸肉沙拉',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FloatingActionButton.small(
+                  onPressed: () {
+                    if (_foodController.text.isNotEmpty) {
+                      setState(() {
+                        userProfile.value.dietLog.add(_foodController.text);
+                        // 觸發全局更新 (雖然此處是 local state，但為了資料一致性)
+                        userProfile.notifyListeners();
+                        _foodController.clear();
+                      });
+                    }
+                  },
+                  child: const Icon(Icons.add),
+                ),
               ],
             ),
-            child: Text(s1, style: TextStyle(fontSize: 20,)),
           ),
-          SizedBox(height: 15),
-          Container(
-            color: Colors.redAccent,
-            child: Image.asset('assets/a1.png'),
-            width: 200,
-            height: 200,
-          ),
-          SizedBox(height: 25),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.purple, width: 2, style: BorderStyle.solid),
-                  borderRadius: BorderRadius.circular(30),
-                  image: DecorationImage(image: AssetImage('assets/a2.png'), fit: BoxFit.cover),
-                ),
-              ),
-              //SizedBox(width: 10,),
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.purple, width: 2, style: BorderStyle.solid),
-                  borderRadius: BorderRadius.circular(30),
-                  image: DecorationImage(image: AssetImage('assets/a3.jpg'), fit: BoxFit.cover),
-                ),
-              ),
-            ],
+          Expanded(
+            child: ValueListenableBuilder<UserProfile>(
+                valueListenable: userProfile,
+                builder: (context, profile, child) {
+                  if (profile.dietLog.isEmpty) {
+                    return const Center(child: Text('目前還沒有記錄，快記下第一餐吧！', style: TextStyle(color: Colors.grey)));
+                  }
+                  return ListView.builder(
+                    itemCount: profile.dietLog.length,
+                    itemBuilder: (context, index) {
+                      // 顯示最新的在上面
+                      final food = profile.dietLog[profile.dietLog.length - 1 - index];
+                      return ListTile(
+                        leading: const Icon(Icons.check_circle_outline, color: Colors.green),
+                        title: Text(food),
+                        subtitle: Text(DateTime.now().toString().split(' ')[0]), // 簡單顯示今天日期
+                      );
+                    },
+                  );
+                }
+            ),
           ),
         ],
       ),
     );
-  }
-}
-
-class Screen2 extends StatelessWidget {
-  const Screen2({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('Screen2');
-  }
-}
-class Screen3 extends StatelessWidget {
-  const Screen3({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("大一時期", style: TextStyle(fontSize: 24,)),
-            ],
-          ),
-          SizedBox(height: 10,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                height: 200,
-                width: 140,
-                //width: 200,
-                child: ListView(
-                  children: [
-                    Text("1. 學好英文", style: TextStyle(fontSize: 20,)),
-                    Text("2. 組合語言", style: TextStyle(fontSize: 20,)),
-                    Text("3. 考取證照", style: TextStyle(fontSize: 20,)),
-                    Text("4. 人際關係", style: TextStyle(fontSize: 20,)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10,),
-          Row(),
-          SizedBox(height: 10,),
-          Row(),
-          SizedBox(height: 10,),
-          Row(),
-        ],
-      ),
-    );
-  }
-}
-class Screen4 extends StatelessWidget {
-  const Screen4({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('Screen4');
   }
 }
